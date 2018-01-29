@@ -136,14 +136,7 @@ module.exports = class Diff {
         const {errors} = this;
 
         const testCases = taskList.reduce((result, task) => {
-            const failure = errors.reduce((result, error) => {
-                if (error.name === task.name) {
-                    return `\n<failure type="failure" message="${error.message}" />\n`;
-                } else {
-                    return '';
-                }
-            }, '');
-
+            const failure = errors.reduce((result, error) => (error.name === task.name) ? `\n<failure type="failure" message="${error.message}" />\n` : '', '');
             result += `\n<testcase classname="headless-diff" name="${task.name}" time="0">${failure}</testcase>\n`;
             return result;
         }, '');
