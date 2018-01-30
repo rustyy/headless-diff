@@ -135,13 +135,37 @@ module.exports = class Diff {
         const taskList = flatten(this.tasks);
         const {errors} = this;
 
-        const testCases = taskList.reduce((result, task) => {
-            const failure = errors.reduce((result, error) => (error.name === task.name) ? `\n<failure type="failure" message="${error.message}" />\n` : '', '');
-            result += `\n<testcase classname="headless-diff" name="${task.name}" time="0">${failure}</testcase>\n`;
+        function toErrorString(taskName) {
+            return (result, {name, message}) => {
+                if (name === taskName) {
+                    result += `\n    <failure type="failure" message="${message}" />\n`;
+                }
+                return result;
+            }
+        }
+
+        const testCases = taskList.reduce((result, {name}) => {
+            let failure = errors.reduce(toErrorString(name), '');
+            result += `\n  <testcase classname="headless-diff" name="${name}" time="0">${failure}  </testcase>\n`;
             return result;
         }, '');
 
-        const testSuite = `<testsuite name="Diff-Suite" tests="${taskList.length}" failures="${errors.length}" timestamp="${new Date().toUTCString()}" errors="0" skipped="0" time="0">${testCases}</testsuite>`;
+        const testSuiteProps = {
+            name: 'Diff-Suite',
+            tests: taskList.length,
+            failures: errors.length,
+            timestamp: new Date().toUTCString(),
+            errors: 0,
+            skipped: 0,
+            time: 0,
+        };
+
+        const propsString = Object.entries(testSuiteProps).reduce((result, prop) => {
+            result += `${prop[0]}="${prop[1]}" `;
+            return result;
+        }, '');
+
+        const testSuite = `<testsuite ${propsString}>${testCases}</testsuite>`;
         console.log(testSuite);
     }
 
