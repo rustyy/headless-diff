@@ -1,6 +1,6 @@
 {
   "name": "headless-diff",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "main": "./dist/index.js",
   "scripts": {
@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "babel-runtime": "^6.26.0",
-    "headless-bulk-screenshot": "^0.1.5",
+    "headless-bulk-screenshot": "^0.1.6",
     "node-resemble-js": "^0.2.0"
   },
   "devDependencies": {
