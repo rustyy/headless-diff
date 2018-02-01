@@ -106,21 +106,29 @@ module.exports = class Diff {
 
     async run() {
         const taskList = flatten(this.tasks);
+        let {errors} = this;
 
-        let screenshotOptions = this.getScreenshotOptions(this.options);
-        screenshotOptions.fileSuffix += this.failFileSuffix;
-        await screenshot(this.tasks, screenshotOptions);
 
-        return Promise.all(taskList.map((task) => {
-            let paths = this._getFilePaths(task);
+        try {
+            let screenshotOptions = this.getScreenshotOptions(this.options);
+            screenshotOptions.fileSuffix += this.failFileSuffix;
+            await screenshot(this.tasks, screenshotOptions);
 
-            return this._compare({
-                name: task.name,
-                reference: paths.reference,
-                fail: paths.fail,
-                diff: paths.diff,
-            });
-        }));
+            return Promise.all(taskList.map((task) => {
+                let paths = this._getFilePaths(task);
+
+                return this._compare({
+                    name: task.name,
+                    reference: paths.reference,
+                    fail: paths.fail,
+                    diff: paths.diff,
+                });
+            }));
+        } catch (err) {
+            console.error(err);
+            errors.push({message: err});
+            return Promise.reject();
+        }
     }
 
     report() {
@@ -150,6 +158,13 @@ module.exports = class Diff {
             return result;
         }, '');
 
+        const globalFailures = errors.reduce((result, {name, message}) => {
+            if (!name) {
+                result += `\n  <failure type="failure" message="${message}" />\n`;
+            }
+            return result;
+        }, '');
+
         const testSuiteProps = {
             name: 'Diff-Suite',
             tests: taskList.length,
@@ -165,7 +180,7 @@ module.exports = class Diff {
             return result;
         }, '');
 
-        const testSuite = `<testsuite ${propsString}>${testCases}</testsuite>`;
+        const testSuite = `<testsuite ${propsString}>${globalFailures}${testCases}</testsuite>`;
         console.log(testSuite);
     }
 
