@@ -84,6 +84,7 @@ module.exports = class Diff {
 
         return new Promise((resolve, reject) => {
             resemble(failFile).compareTo(refFile)
+                .ignoreAntialiasing()
                 .onComplete(function (data) {
                     if (Number(data.misMatchPercentage) >= tolerance) {
 
